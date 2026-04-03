@@ -1,11 +1,14 @@
 workflows:
-  android-apk:
-    name: Android APK Build
+  android-release:
+    name: Android Release Build (Google Play)
     max_build_duration: 60
-
     environment:
       flutter: stable
       java: 17
+      groups:
+        - google_play_credentials # Link this to your Codemagic Environment Variables
+      vars:
+        PACKAGE_NAME: "com.islamicapp.arabicurdugame"
 
     scripts:
       - name: Clean project
@@ -30,6 +33,14 @@ workflows:
               }
           }" >> android/build.gradle
 
+      - name: Set up local.properties (Code Signing)
+        script: |
+          echo $FMM_KEYSTORE | base64 --decode > /tmp/keystore.jks
+          echo "storeFile=/tmp/keystore.jks" >> android/local.properties
+          echo "storePassword=$FMM_KEYSTORE_PASSWORD" >> android/local.properties
+          echo "keyAlias=$FMM_KEY_ALIAS" >> android/local.properties
+          echo "keyPassword=$FMM_KEY_PASSWORD" >> android/local.properties
+
       - name: Regenerate Android folder
         script: |
           flutter create --platforms android -t app temp_project
@@ -39,11 +50,9 @@ workflows:
 
       - name: Set package name
         script: |
-          sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/build.gradle
-          sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/src/main/AndroidManifest.xml
-
+          sed -i "s/com.example.temp_project/$PACKAGE_NAME/g" android/app/build.gradle
+          sed -i "s/com.example.temp_project/$PACKAGE_NAME/g" android/app/src/main/AndroidManifest.xml
           mkdir -p android/app/src/main/kotlin/com/islamicapp/arabicurdugame
-
           cat > android/app/src/main/kotlin/com/islamicapp/arabicurdugame/MainActivity.kt << 'KOTLIN'
           package com.islamicapp.arabicurdugame
           import io.flutter.embedding.android.FlutterActivity
@@ -56,9 +65,10 @@ workflows:
           curl -L "https://www.cle.org.pk/software/localization/Fonts/nafeesNastaleeq.ttf" \
           -o assets/fonts/NafeesNastaleeq.ttf || true
 
-      - name: Build APK
+      - name: Build AAB for Release
         script: |
-          flutter build apk --release
+          # The --build-number is critical. Google Play won't accept the same number twice.
+          flutter build appbundle --release --build-name=1.0.0 --build-number=$BUILD_NUMBER
 
     artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/*.aab
