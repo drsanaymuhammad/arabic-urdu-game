@@ -1,50 +1,25 @@
-plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
-}
-
-android {
-    namespace "com.islamicapp.arabicurdugame"
-    compileSdk 34
-    ndkVersion "25.1.8937393"
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+buildscript {
+    ext.kotlin_version = '1.9.0'
+    repositories {
+        google()
+        mavenCentral()
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-
-    defaultConfig {
-        applicationId "com.islamicapp.arabicurdugame"
-        minSdk 21
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
-    }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.debug
-            minifyEnabled false
-            shrinkResources false
-        }
-    }
-}
-
-flutter {
-    source "../.."
 }
 
 allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
     configurations.all {
         resolutionStrategy {
             force "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
-            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0"
-            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0"
         }
     }
 }
