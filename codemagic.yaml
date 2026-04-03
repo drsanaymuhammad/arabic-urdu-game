@@ -1,46 +1,64 @@
-
 workflows:
   android-apk:
     name: Android APK Build
     max_build_duration: 60
+
     environment:
-  flutter: stable
-  java: 17
-    environment:
-      flutter: 3.19.6
+      flutter: stable
       java: 17
-      scripts:
-  - name: Clean project
-    script: |
-      flutter clean
-      rm -rf ~/.gradle/caches
-      rm -rf ~/.pub-cache
-      flutter pub get
+
     scripts:
+      - name: Clean project
+        script: |
+          flutter clean
+          rm -rf ~/.gradle/caches
+          rm -rf ~/.pub-cache
+
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Fix Kotlin conflict
+        script: |
+          echo "subprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0'
+                  }
+              }
+          }" >> android/build.gradle
+
       - name: Regenerate Android folder
         script: |
           flutter create --platforms android -t app temp_project
           rm -rf android
           cp -r temp_project/android .
           rm -rf temp_project
+
       - name: Set package name
         script: |
           sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/build.gradle
           sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/src/main/AndroidManifest.xml
+
           mkdir -p android/app/src/main/kotlin/com/islamicapp/arabicurdugame
+
           cat > android/app/src/main/kotlin/com/islamicapp/arabicurdugame/MainActivity.kt << 'KOTLIN'
           package com.islamicapp.arabicurdugame
           import io.flutter.embedding.android.FlutterActivity
           class MainActivity: FlutterActivity()
           KOTLIN
+
       - name: Download Urdu font
         script: |
           mkdir -p assets/fonts
           curl -L "https://www.cle.org.pk/software/localization/Fonts/nafeesNastaleeq.ttf" \
-            -o assets/fonts/NafeesNastaleeq.ttf || true
-      - name: Get Flutter packages
-        script: flutter pub get
+          -o assets/fonts/NafeesNastaleeq.ttf || true
+
       - name: Build APK
-        script: flutter build apk --release
+        script: |
+          flutter build apk --release
+
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
