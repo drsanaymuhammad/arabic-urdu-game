@@ -4,8 +4,18 @@ workflows:
     name: Android APK Build
     max_build_duration: 60
     environment:
+  flutter: stable
+  java: 17
+    environment:
       flutter: 3.19.6
       java: 17
+      scripts:
+  - name: Clean project
+    script: |
+      flutter clean
+      rm -rf ~/.gradle/caches
+      rm -rf ~/.pub-cache
+      flutter pub get
     scripts:
       - name: Regenerate Android folder
         script: |
