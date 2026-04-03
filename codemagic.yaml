@@ -1,3 +1,4 @@
+
 workflows:
   android-apk:
     name: Android APK Build
@@ -6,10 +7,22 @@ workflows:
       flutter: 3.19.6
       java: 17
     scripts:
-      - name: Set up local.properties
+      - name: Regenerate Android folder
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
+          flutter create --platforms android -t app temp_project
+          rm -rf android
+          cp -r temp_project/android .
+          rm -rf temp_project
+      - name: Set package name
+        script: |
+          sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/build.gradle
+          sed -i 's/com.example.temp_project/com.islamicapp.arabicurdugame/g' android/app/src/main/AndroidManifest.xml
+          mkdir -p android/app/src/main/kotlin/com/islamicapp/arabicurdugame
+          cat > android/app/src/main/kotlin/com/islamicapp/arabicurdugame/MainActivity.kt << 'KOTLIN'
+          package com.islamicapp.arabicurdugame
+          import io.flutter.embedding.android.FlutterActivity
+          class MainActivity: FlutterActivity()
+          KOTLIN
       - name: Download Urdu font
         script: |
           mkdir -p assets/fonts
