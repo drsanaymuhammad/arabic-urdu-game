@@ -5,8 +5,10 @@ workflows:
     environment:
       flutter: stable
       java: 17
+      android_signing:
+        - islamic_game_keystore  # This matches the name you set in Settings
       groups:
-        - google_play_credentials # Link this to your Codemagic Environment Variables
+        - google_play_credentials 
       vars:
         PACKAGE_NAME: "com.islamicapp.arabicurdugame"
 
@@ -32,14 +34,6 @@ workflows:
                   }
               }
           }" >> android/build.gradle
-
-      - name: Set up local.properties (Code Signing)
-        script: |
-          echo $FMM_KEYSTORE | base64 --decode > /tmp/keystore.jks
-          echo "storeFile=/tmp/keystore.jks" >> android/local.properties
-          echo "storePassword=$FMM_KEYSTORE_PASSWORD" >> android/local.properties
-          echo "keyAlias=$FMM_KEY_ALIAS" >> android/local.properties
-          echo "keyPassword=$FMM_KEY_PASSWORD" >> android/local.properties
 
       - name: Regenerate Android folder
         script: |
@@ -67,7 +61,7 @@ workflows:
 
       - name: Build AAB for Release
         script: |
-          # The --build-number is critical. Google Play won't accept the same number twice.
+          # Codemagic automatically signs the AAB when 'android_signing' is in environment
           flutter build appbundle --release --build-name=1.0.0 --build-number=$BUILD_NUMBER
 
     artifacts:
