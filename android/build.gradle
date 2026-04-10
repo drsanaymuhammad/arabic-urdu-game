@@ -1,3 +1,12 @@
+signingConfigs {
+    release {
+        storeFile file("release-key.jks")
+        storePassword "myapp123"
+        keyAlias "my-key-alias"
+        keyPassword "myapp123"
+    }
+}
+
 buildscript {
     ext.kotlin_version = '1.9.0'
     repositories {
